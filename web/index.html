@@ -79,6 +79,19 @@
         font-size: 14px;
         line-height: 1.45;
       }
+      .next {
+        margin-top: 22px;
+        padding-top: 22px;
+        border-top: 1px solid #27345e;
+      }
+      h2 { margin: 0 0 8px; font-size: 18px; }
+      .gateway-status {
+        min-height: 42px;
+        color: #aeb9d9;
+        font-size: 14px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
       a { color: #9cc0ff; }
       code { color: #d7e1ff; }
     </style>
@@ -102,6 +115,12 @@
       <button id="deposit" class="secondary">2. Deposit to Gateway</button>
 
       <div id="status" class="status">Connect your wallet to begin.</div>
+      <section class="next">
+        <h2>Next steps</h2>
+        <div id="gateway-status" class="gateway-status">After deposit, check the Gateway balance here.</div>
+        <button id="check-gateway" class="secondary">3. Check Gateway status</button>
+        <button id="transfer" class="secondary" disabled>4. Transfer to Arc</button>
+      </section>
       <div class="warning">
         Use the contract method <code>deposit</code>. Do not send USDC with a normal
         token transfer directly to the GatewayWallet address, or it will not be credited.
