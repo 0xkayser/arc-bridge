@@ -179,6 +179,7 @@ async function send(data) {
     data: data.data,
     value: "0x0",
   };
+  // Catch contract reverts before the wallet submits a transaction on-chain.
   await rpc("eth_estimateGas", [transaction]);
   const hash = await rpc("eth_sendTransaction", [transaction]);
   setStatus(`Waiting for confirmation…\n${BASESCAN}${hash}`);
@@ -309,7 +310,9 @@ async function deposit() {
       `but deposit requires ${formatUnits(units)} USDC.`,
     );
   }
-  if (allowance < units) throw new Error("Allowance is too low. Click Approve first.");
+  if (allowance < units) {
+    throw new Error("Allowance is too low. Click Approve first.");
+  }
   setStatus("Deposit is waiting for your wallet…");
   const hash = await send({ to: GATEWAY_WALLET, data: encodeDeposit(BASE_USDC, units) });
   await refresh();
