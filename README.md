@@ -27,6 +27,9 @@ python3 -m http.server 8080 --directory web
 
 После deposit Gateway ждёт финалити Base. Для Base это обычно около 13–19 минут. Не отправляй USDC обычным ERC-20 `transfer` прямо на GatewayWallet: такой перевод не создаёт Gateway-баланс.
 
+После merge workflow GitHub Pages страницу можно открыть по адресу:
+`https://0xkayser.github.io/arc-bridge/`.
+
 ## CLI
 
 ```bash
