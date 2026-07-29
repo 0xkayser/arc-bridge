@@ -1,41 +1,42 @@
 # arc-bridge
 
-Минимальный open-source flow для USDC:
+Minimal open-source self-custody flow for USDC:
 
 `Base wallet → approve → GatewayWallet.deposit → Gateway finality → estimate → EIP-712 → forwarded transfer → Arc`
 
-## Что здесь есть
+## Included
 
-- `web/` — простая self-custody страница: пользователь подключает свой кошелёк, нажимает `Approve`, затем `Deposit`.
-- `bridge.js` — CLI для проверки депозита, ожидания Gateway и forwarded transfer.
-- Приватные ключи не сохраняются и не отправляются на сервер.
-- Для forwarded transfer не нужен USDC на Arc для газа: Circle сам отправляет mint-транзакцию на destination.
+- `web/` — a simple self-custody deposit page. Users connect their own wallet, click `Approve`, then `Deposit`.
+- `bridge.js` — CLI for checking deposits, waiting for Gateway credit, and submitting a forwarded transfer.
+- Private keys are never stored or sent to a server.
+- Forwarded transfers do not require USDC on Arc for destination gas; Circle submits the mint transaction.
 
 ## Web deposit
 
-Открой локально через HTTP-сервер (кошелёк обычно блокирует `file://`):
+Run the page through an HTTP server (wallets commonly block `file://` pages):
 
 ```bash
 cd ~/Desktop/arc-bridge
+npm install
 npm run web
 ```
 
-Открой [http://127.0.0.1:8080](http://127.0.0.1:8080) или [http://localhost:8080](http://localhost:8080), подключи кошелёк на Base и выполни:
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080) or [http://localhost:8080](http://localhost:8080), connect a wallet on Base, and:
 
-Если порт `8080` занят, запусти на другом:
+1. Click `Approve USDC` to approve the exact amount.
+2. Click `Deposit to Gateway` to call `GatewayWallet.deposit(USDC, amount)`.
+
+If port `8080` is already in use:
 
 ```bash
 PORT=8081 npm run web
 ```
 
-и открой [http://127.0.0.1:8081](http://127.0.0.1:8081).
+Then open [http://127.0.0.1:8081](http://127.0.0.1:8081).
 
-1. `Approve USDC` — approve на точную сумму.
-2. `Deposit to Gateway` — `GatewayWallet.deposit(USDC, amount)`.
+After the deposit, Gateway waits for Base finality. Base deposits commonly take about 13–19 minutes. Never send USDC with a normal ERC-20 `transfer` directly to GatewayWallet; that does not create a Gateway balance.
 
-После deposit Gateway ждёт финалити Base. Для Base это обычно около 13–19 минут. Не отправляй USDC обычным ERC-20 `transfer` прямо на GatewayWallet: такой перевод не создаёт Gateway-баланс.
-
-После merge workflow GitHub Pages страницу можно открыть по адресу:
+After merging the GitHub Pages workflow, the page will be available at:
 `https://0xkayser.github.io/arc-bridge/`.
 
 ## CLI
@@ -43,34 +44,34 @@ PORT=8081 npm run web
 ```bash
 npm install
 
-# read-only диагностика
+# Read-only diagnostics
 PRIVATE_KEY=0x... node bridge.js balance
 PRIVATE_KEY=0x... node bridge.js diagnose
 
-# 1. approve (если allowance недостаточен) + deposit на Base
+# 1. Approve (if allowance is insufficient) + deposit on Base
 PRIVATE_KEY=0x... node bridge.js deposit 25
 
-# 2. ждать, пока Gateway увидит депозит
+# 2. Wait until Gateway sees the deposit
 PRIVATE_KEY=0x... node bridge.js wait 25
 
-# 3. estimate → подпись burn intent → forwarded transfer → polling
+# 3. Estimate → sign burn intent → forwarded transfer → poll status
 PRIVATE_KEY=0x... node bridge.js transfer 25
 ```
 
-Для автоматического подтверждения on-chain транзакций можно добавить `--yes`:
+Add `--yes` to skip interactive confirmation for on-chain transactions:
 
 ```bash
 PRIVATE_KEY=0x... node bridge.js deposit 25 --yes
 PRIVATE_KEY=0x... node bridge.js transfer 25 --yes
 ```
 
-CLI не использует ручной `MAX_FEE`: fee и `maxBlockHeight` берутся из `/v1/estimate?enableForwarder=true`. `destinationToken` не угадывается: код читает его из Gateway API; если API ещё не публикует адрес, transfer останавливается до подписи.
+The CLI never hand-sizes `MAX_FEE`: `maxFee` and `maxBlockHeight` come from `/v1/estimate?enableForwarder=true`. `destinationToken` is not guessed; the code reads it from Gateway API and stops before signing if the API does not publish an active destination token.
 
-## Важное ограничение
+## Current limitation
 
-На момент последней проверки live mainnet Gateway API Circle не возвращал активную сеть домена `26` (Arc) в `/v1/info`. Поэтому deposit на Base уже можно делать, но CLI не будет подписывать и отправлять нерабочий transfer, пока Circle не активирует Arc mainnet. Arc Testnet и mainnet — разные Gateway API окружения и адреса.
+At the latest check, Circle's live mainnet Gateway API did not list Arc mainnet domain `26` in `/v1/info`. Base deposits can still be made, but the CLI will refuse to sign or submit a transfer until Circle activates Arc mainnet. Arc Testnet and Arc mainnet use different Gateway API environments and contract addresses.
 
-## Контракты mainnet Base
+## Base mainnet contracts
 
 - GatewayWallet: `0x77777777Dcc4d5A8B6E418Fd04D8997ef11000eE`
 - Base USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
@@ -79,4 +80,4 @@ CLI не использует ручной `MAX_FEE`: fee и `maxBlockHeight` б
 
 ## License
 
-MIT. См. [LICENSE](./LICENSE).
+MIT. See [LICENSE](./LICENSE).

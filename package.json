@@ -1,7 +1,7 @@
 {
   "name": "arc-bridge",
   "version": "1.0.0",
-  "description": "Автоматизация ручного флоу из твита @xet: Circle Gateway (deposit → attestation → mint). Официальный Bridge Kit SDK Arc mainnet пока **не поддерживает** (только тестнет) — поэтому этот скрипт ходит напрямую в контракты Gateway и REST API Circle, по официальным референсам Circle.",
+  "description": "A self-custody Base USDC deposit and Circle Gateway forwarded-transfer flow using the official Gateway contracts and REST API.",
   "main": "bridge.js",
   "scripts": {
     "check": "node --check bridge.js && node --check web/app.js",

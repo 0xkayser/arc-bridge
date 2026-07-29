@@ -96,10 +96,10 @@ function toBytes32(address) {
 function getAccount() {
   const privateKey = process.env.PRIVATE_KEY;
   if (!privateKey) {
-    fail("PRIVATE_KEY не задан. Пример: PRIVATE_KEY=0x... node bridge.js balance");
+    fail("PRIVATE_KEY is not set. Example: PRIVATE_KEY=0x... node bridge.js balance");
   }
   if (!/^0x[0-9a-fA-F]{64}$/.test(privateKey)) {
-    fail("PRIVATE_KEY должен быть hex-строкой 0x + 64 символа");
+    fail("PRIVATE_KEY must be a hex string with 0x plus 64 characters");
   }
   return privateKeyToAccount(privateKey);
 }
@@ -208,9 +208,9 @@ async function cmdBalance() {
 }
 
 async function cmdDeposit(amountString) {
-  if (!amountString) fail("Укажите сумму: node bridge.js deposit 25");
+  if (!amountString) fail("Enter an amount: node bridge.js deposit 25");
   const amount = parseUnits(amountString, 6);
-  if (amount <= 0n) fail("Сумма должна быть больше нуля");
+  if (amount <= 0n) fail("Amount must be greater than zero");
 
   const { account, basePublic, baseWallet } = clients();
   const [balance, nativeBalance, allowance] = await Promise.all([
@@ -230,18 +230,18 @@ async function cmdDeposit(amountString) {
   ]);
 
   if (balance < amount) {
-    fail(`Недостаточно USDC на Base: есть ${formatUsdc(balance)}, нужно ${amountString}`);
+    fail(`Insufficient Base USDC: wallet has ${formatUsdc(balance)}, but ${amountString} is required`);
   }
   if (nativeBalance === 0n) {
-    fail("На Base нет ETH для газа approve/deposit");
+    fail("The Base wallet has no ETH for approve/deposit gas");
   }
 
   console.log(`Deposit: ${amountString} USDC on Base → GatewayWallet`);
   console.log(`Wallet: ${account.address}`);
   console.log(`GatewayWallet: ${GATEWAY_WALLET}`);
-  console.log(`Allowance сейчас: ${formatUsdc(allowance)} USDC`);
-  if (!(await confirm("Продолжить? Будет отправлен approve (если нужен) и deposit."))) {
-    fail("Отменено");
+  console.log(`Current allowance: ${formatUsdc(allowance)} USDC`);
+  if (!(await confirm("Continue? An approve (if needed) and deposit transaction will be sent."))) {
+    fail("Cancelled");
   }
 
   if (allowance < amount) {
@@ -273,19 +273,19 @@ async function cmdDeposit(amountString) {
   const depositReceipt = await waitForReceipt(basePublic, depositTx, "deposit");
   console.log(`deposit success in block ${depositReceipt.blockNumber}`);
   console.log(`${BASE.explorer}/tx/${depositTx}`);
-  console.log("\nДепозит принят Base. Gateway может показывать его только после финалити (~13–19 мин).");
-  console.log(`Проверка: PRIVATE_KEY=0x... node bridge.js wait ${amountString}`);
+  console.log("\nDeposit confirmed on Base. Gateway may show it only after finality (~13–19 minutes).");
+  console.log(`Check it with: PRIVATE_KEY=0x... node bridge.js wait ${amountString}`);
 }
 
 async function cmdWait(amountString) {
-  if (!amountString) fail("Укажите сумму: node bridge.js wait 25");
+  if (!amountString) fail("Enter an amount: node bridge.js wait 25");
   const target = parseUnits(amountString, 6);
-  if (target <= 0n) fail("Сумма должна быть больше нуля");
+  if (target <= 0n) fail("Amount must be greater than zero");
   const { account } = clients();
   const deadline = Date.now() + POLL_TIMEOUT_MS;
   let attempt = 0;
 
-  console.log(`Жду, пока Gateway зачислит минимум ${amountString} USDC...`);
+  console.log(`Waiting for Gateway to credit at least ${amountString} USDC...`);
   while (Date.now() < deadline) {
     attempt += 1;
     const state = await gatewayState(account.address);
@@ -295,12 +295,12 @@ async function cmdWait(amountString) {
       `[${attempt}] available=${state.balance} USDC, pendingBatch=${state.pendingBatch} USDC, pending=${pending.length}`,
     );
     if (available >= target) {
-      console.log(`\n✓ Gateway видит ${state.balance} USDC. Можно запускать transfer.`);
+      console.log(`\n✓ Gateway sees ${state.balance} USDC. You can start the transfer.`);
       return;
     }
     await sleep(POLL_INTERVAL_MS);
   }
-  fail(`Таймаут ожидания Gateway. Запустите diagnose: node bridge.js diagnose`);
+  fail(`Gateway wait timed out. Run diagnostics: node bridge.js diagnose`);
 }
 
 async function cmdDiagnose(txHash) {
@@ -340,7 +340,7 @@ async function cmdDiagnose(txHash) {
     console.log(`Block: ${receipt.blockNumber}`);
     console.log(`Logs: ${receipt.logs.length}`);
     if (receipt.status !== "success") {
-      console.log("Причина: транзакция reverted; повторите deposit после исправления ошибки.");
+      console.log("Cause: the transaction reverted. Repeat the deposit after fixing the issue.");
     }
     console.log(`${BASE.explorer}/tx/${txHash}`);
   }
@@ -368,8 +368,8 @@ async function getDestinationToken() {
   if (!destination) {
     const active = (info.domains ?? []).map((item) => `${item.chain}(${item.domain})`).join(", ");
     fail(
-      `Gateway mainnet сейчас не знает активную сеть домена ${ARC.domain} (Arc). ` +
-      `Active domains: ${active}. Deposit на Base работает, transfer пока запускать нельзя.`,
+      `Gateway mainnet does not currently list an active network for domain ${ARC.domain} (Arc). ` +
+      `Active domains: ${active}. Base deposits work, but transfers cannot start yet.`,
     );
   }
 
@@ -380,20 +380,20 @@ async function getDestinationToken() {
     return configuredToken;
   }
   fail(
-    `Gateway /info активировал Arc, но не вернул адрес USDC. ` +
-    `Задайте DESTINATION_TOKEN адресом из ответа Circle API; не подставляйте его наугад.`,
+    `Gateway /info lists Arc as active but did not return a USDC address. ` +
+    `Set DESTINATION_TOKEN to the address from the Circle API; do not guess it.`,
   );
 }
 
 async function cmdTransfer(amountString) {
-  if (!amountString) fail("Укажите сумму: node bridge.js transfer 25");
+  if (!amountString) fail("Enter an amount: node bridge.js transfer 25");
   const value = parseUnits(amountString, 6);
-  if (value <= 0n) fail("Сумма должна быть больше нуля");
+  if (value <= 0n) fail("Amount must be greater than zero");
   const { account } = clients();
   const state = await gatewayState(account.address);
   const available = parseUnits(state.balance, 6);
   if (available < value) {
-    fail(`Gateway видит только ${state.balance} USDC. Сначала подождите: node bridge.js wait ${amountString}`);
+    fail(`Gateway sees only ${state.balance} USDC. Wait first: node bridge.js wait ${amountString}`);
   }
 
   const destinationToken = await getDestinationToken();
@@ -427,14 +427,14 @@ async function cmdTransfer(amountString) {
   const canonicalSpec = estimated.spec ?? spec;
   if (available < value + maxFee) {
     fail(
-      `Недостаточно Gateway-баланса с учётом fee: есть ${state.balance}, ` +
-      `нужно минимум ${formatUsdc(value + maxFee)} USDC.`,
+      `Insufficient Gateway balance including the fee: ${state.balance} available, ` +
+      `${formatUsdc(value + maxFee)} USDC required.`,
     );
   }
 
   console.log(`Estimated maxFee: ${formatUsdc(maxFee)} USDC`);
   console.log(`Burn intent expires at source block: ${maxBlockHeight}`);
-  if (!(await confirm("Подписать intent и отправить forwarded transfer?"))) fail("Отменено");
+  if (!(await confirm("Sign the intent and submit a forwarded transfer?"))) fail("Cancelled");
 
   const burnIntent = { maxBlockHeight, maxFee, spec: canonicalSpec };
   const signature = await account.signTypedData({
@@ -480,7 +480,7 @@ const commands = {
 };
 
 if (!commands[command]) {
-  console.log("Использование: PRIVATE_KEY=0x... node bridge.js <balance|deposit|wait|diagnose|transfer> [сумма|txHash] [--yes]");
+  console.log("Usage: PRIVATE_KEY=0x... node bridge.js <balance|deposit|wait|diagnose|transfer> [amount|txHash] [--yes]");
   process.exit(1);
 }
 
