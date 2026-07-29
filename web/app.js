@@ -97,12 +97,15 @@ async function waitForReceipt(hash) {
 }
 
 async function send(data) {
-  const hash = await rpc("eth_sendTransaction", [{
+  const transaction = {
     from: account,
     to: data.to,
     data: data.data,
     value: "0x0",
-  }]);
+  };
+  // Catch contract reverts before the wallet submits a transaction on-chain.
+  await rpc("eth_estimateGas", [transaction]);
+  const hash = await rpc("eth_sendTransaction", [transaction]);
   setStatus(`Waiting for confirmation…\n${BASESCAN}${hash}`);
   await waitForReceipt(hash);
   return hash;
@@ -150,10 +153,16 @@ async function approve() {
 async function deposit() {
   if (!account) await connect();
   const units = parseUsdc(amountInput.value);
-  const allowance = await readUint256({
-    to: BASE_USDC,
-    data: encodeAllowance(account, GATEWAY_WALLET),
-  });
+  const [balance, allowance] = await Promise.all([
+    readUint256({ to: BASE_USDC, data: encodeBalanceOf(account) }),
+    readUint256({ to: BASE_USDC, data: encodeAllowance(account, GATEWAY_WALLET) }),
+  ]);
+  if (balance < units) {
+    throw new Error(
+      `Insufficient Base USDC: wallet has ${formatUnits(balance)} USDC, ` +
+      `but deposit requires ${formatUnits(units)} USDC.`,
+    );
+  }
   if (allowance < units) {
     throw new Error("Allowance is too low. Click Approve first.");
   }
