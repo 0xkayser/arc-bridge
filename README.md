@@ -17,10 +17,10 @@
 
 ```bash
 cd ~/Desktop/arc-bridge
-python3 -m http.server 8080 --directory web
+npm run web
 ```
 
-Открой [http://localhost:8080](http://localhost:8080), подключи кошелёк на Base и выполни:
+Открой [http://127.0.0.1:8080](http://127.0.0.1:8080) или [http://localhost:8080](http://localhost:8080), подключи кошелёк на Base и выполни:
 
 1. `Approve USDC` — approve на точную сумму.
 2. `Deposit to Gateway` — `GatewayWallet.deposit(USDC, amount)`.
