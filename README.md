@@ -22,6 +22,14 @@ npm run web
 
 Открой [http://127.0.0.1:8080](http://127.0.0.1:8080) или [http://localhost:8080](http://localhost:8080), подключи кошелёк на Base и выполни:
 
+Если порт `8080` занят, запусти на другом:
+
+```bash
+PORT=8081 npm run web
+```
+
+и открой [http://127.0.0.1:8081](http://127.0.0.1:8081).
+
 1. `Approve USDC` — approve на точную сумму.
 2. `Deposit to Gateway` — `GatewayWallet.deposit(USDC, amount)`.
 

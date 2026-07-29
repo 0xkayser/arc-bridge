@@ -5,7 +5,7 @@
   "main": "bridge.js",
   "scripts": {
     "check": "node --check bridge.js && node --check web/app.js",
-    "web": "python3 -m http.server 8080 --directory web",
+    "web": "python3 -m http.server ${PORT:-8080} --directory web",
     "test": "npm run check"
   },
   "keywords": [],
