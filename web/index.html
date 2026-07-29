@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deposit USDC to Circle Gateway</title>
+    <meta
+      name="description"
+      content="A minimal self-custodial Base USDC deposit page for Circle Gateway."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+        background: #0b1020;
+        color: #f5f7ff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: radial-gradient(circle at 20% 0%, #1a2b57, transparent 40%), #0b1020;
+      }
+      main {
+        width: min(100%, 520px);
+        padding: 32px;
+        border: 1px solid #27345e;
+        border-radius: 24px;
+        background: rgba(16, 24, 48, 0.92);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      }
+      h1 { margin: 0 0 10px; font-size: 28px; }
+      p { color: #aeb9d9; line-height: 1.55; }
+      label { display: block; margin: 24px 0 8px; color: #cbd5f5; font-size: 14px; }
+      input {
+        width: 100%;
+        padding: 14px 15px;
+        border: 1px solid #3a4a78;
+        border-radius: 12px;
+        color: #fff;
+        background: #0d1530;
+        font: inherit;
+        font-size: 18px;
+      }
+      button {
+        width: 100%;
+        margin-top: 12px;
+        padding: 14px 16px;
+        border: 0;
+        border-radius: 12px;
+        color: #071027;
+        background: #79a9ff;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+      }
+      button.secondary { color: #e8edff; background: #26365f; }
+      button:disabled { cursor: wait; opacity: 0.55; }
+      .row { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+      .wallet { overflow: hidden; color: #aeb9d9; text-overflow: ellipsis; white-space: nowrap; }
+      .status {
+        min-height: 48px;
+        margin-top: 22px;
+        padding: 13px 14px;
+        border-radius: 12px;
+        background: #0d1530;
+        color: #cbd5f5;
+        white-space: pre-wrap;
+      }
+      .warning {
+        margin-top: 22px;
+        padding: 13px 14px;
+        border-radius: 12px;
+        background: #352a16;
+        color: #f4d69a;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      a { color: #9cc0ff; }
+      code { color: #d7e1ff; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="row">
+        <h1>Deposit USDC</h1>
+        <button id="connect" class="secondary" style="width:auto;margin:0">Connect</button>
+      </div>
+      <p>
+        Deposit USDC from your own wallet on Base into Circle Gateway. Your private key
+        stays in the wallet; this page only asks your wallet to sign two transactions.
+      </p>
+      <div id="wallet" class="wallet">Wallet not connected</div>
+
+      <label for="amount">Amount, USDC</label>
+      <input id="amount" value="25" inputmode="decimal" autocomplete="off" />
+
+      <button id="approve">1. Approve USDC</button>
+      <button id="deposit" class="secondary">2. Deposit to Gateway</button>
+
+      <div id="status" class="status">Connect your wallet to begin.</div>
+      <div class="warning">
+        Use the contract method <code>deposit</code>. Do not send USDC with a normal
+        token transfer directly to the GatewayWallet address, or it will not be credited.
+      </div>
+      <p style="font-size:13px;margin-bottom:0">
+        Base GatewayWallet:
+        <a href="https://basescan.org/address/0x77777777Dcc4d5A8B6E418Fd04D8997ef11000eE" target="_blank" rel="noreferrer">0x7777…00eE</a>
+      </p>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
