@@ -3,3 +3,6 @@ node_modules/
 .env.*
 !.env.example
 .DS_Store
+.venv/
+__pycache__/
+arc_gateway_state.json
